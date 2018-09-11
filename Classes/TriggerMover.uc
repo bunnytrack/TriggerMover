@@ -1,4 +1,4 @@
-class TriggerMover expands Mutator;
+class TriggerMoverMod expands Mutator;
 
 var Mover MostRecentMover;
 var float DefaultMoveTime;
