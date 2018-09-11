@@ -24,7 +24,7 @@ All commands are case insensitive.
 | `mutate TriggerMover State`                | Toggles the targeted mover's `InitialState` property between `BumpOpenTimed` or `StandOpenTimed`, if its `InitialState` property is `BumpOpenTimed` or `StandOpenTimed`.
 
 ## Notes
-Movers with an `InitialState` property of `TriggerControl` are ignored (and the player is notified when attempting to trigger one). Because these movers rely on player proximity, triggering them manually keeps them open permanently and can potentially ruin a game. An example of a `TriggerControl` mover is shown below in `KnighTmare][`:
+Movers with an `InitialState` property of `TriggerControl` (a.k.a. dead man's switches) are ignored (and the player is notified when attempting to trigger one). Because these movers rely on player proximity, triggering them manually keeps them open permanently and can potentially ruin a game. An example of a `TriggerControl` mover is shown below in `KnighTmare][`:
 
 ![Screenshot of TriggerControl mover in CTF-BT-KnighTmare\]\[](https://i.imgur.com/TyGxnbH.jpg)
 
