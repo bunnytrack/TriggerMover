@@ -15,7 +15,7 @@ All commands are case insensitive.
 | `mutate TriggerMover True`                 | Triggers the targeted mover and keeps it open permanently.
 | `mutate TriggerMover Nearest`              | Triggers the nearest mover to the player.
 | `mutate TriggerMover Nearest [PlayerName]` | Triggers the nearest mover to `[PlayerName]`. `[PlayerName]` can be a partial string, e.g. "sap" for "Sapphire".
-| `mutate TriggerMover GetTag`               | Displays the tag of the targeted mover. The player is notified if the targeted actor is not a mover.
+| `mutate TriggerMover GetTag`               | Displays the `Tag` property of the targeted mover. The player is notified if the targeted actor is not a mover.
 | `mutate TriggerMover GetTag All`           | Displays a comma-separated list of all mover `Tag` properties in the current level.
 | `mutate TriggerMover Tag [Name]`           | Triggers all movers with a `Tag` property of `[Name]`. The player is notified when no matches are found.
 | `mutate TriggerMover Tag [Name] True`      | Same as above, but keeps the mover open permanently.
@@ -33,6 +33,9 @@ Many maps have movers with slow return times or mover-related obstacles at the b
 
 ### BlitzCastle
 ![Spawn room of CTF-BT-BlitzCastle](https://i.imgur.com/AjMTlNU.jpg)
+
+### Mesablanca
+![Spawn room of CTF-BT-Mesablanca](https://i.imgur.com/dUCGSmA.jpg)
 
 ### SnowyPark
 ![Spawn room of CTF-BT-SnowyPark](https://i.imgur.com/eeM5dYP.jpg)
