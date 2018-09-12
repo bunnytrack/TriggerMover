@@ -29,7 +29,7 @@ Movers with an `InitialState` property of `TriggerControl` (a.k.a. dead man's sw
 ![Screenshot of TriggerControl mover in CTF-BT-KnighTmare\]\[](https://i.imgur.com/TyGxnbH.jpg)
 
 ## Motivation
-Many maps have movers with slow return times or mover-related obstacles at the beginning of the level. Such mapping practices often results in player frustration at having to continually re-trigger movers or wait for them to return. This is especially problematic for rushers. A couple of well-known maps with annoying spawn room mover obstacles are shown below:
+Many maps have movers with slow return times or mover-related obstacles at the beginning of the level. Such mapping practices often results in player frustration at having to continually re-trigger movers or wait for them to return. This is especially problematic for rushers. A few examples of well-known maps with annoying spawn room movers are shown below:
 
 ### BlitzCastle
 ![Spawn room of CTF-BT-BlitzCastle](https://i.imgur.com/AjMTlNU.jpg)
