@@ -1,7 +1,18 @@
 class TriggerMoverMod expands Mutator;
 
-var Mover MostRecentMover;
-var float DefaultMoveTime;
+struct MoverInfo {
+	var Mover MoverObj;
+	var Sound OpeningSound;
+	var Sound OpenedSound;
+	var Sound ClosingSound;
+	var Sound ClosedSound;
+	var Sound MoveAmbientSound;
+};
+
+var MoverInfo AllMovers[1024];
+var Mover     MostRecentMover;
+var float     DefaultMoveTime;
+var string    EncroachTypes[4];
 
 function PreBeginPlay() {
 	Level.Game.BaseMutator.AddMutator(self);
@@ -10,17 +21,24 @@ function PreBeginPlay() {
 simulated event PostBeginPlay() {
 	Super.PostBeginPlay();
 
+	// Populate AllMovers array with movers.
+	PopulateMoverInfo();
+
+	// Sending a MoverEncroachType as a ClientMessage displays a number only
+	// (e.g. ME_StopWhenEncroach is 0), so this array allows for meaningful messages.
+	EncroachTypes[0] = "StopWhenEncroach";
+	EncroachTypes[1] = "ReturnWhenEncroach";
+	EncroachTypes[2] = "CrushWhenEncroach";
+	EncroachTypes[3] = "IgnoreWhenEncroach";
+
 	Log("");
-	Log("+--------------------------------------------------------------------------+");
-	Log("| TriggerMover                                                             |");
-	Log("| ------------------------------------------------------------------------ |");
-	Log("| Authors:     Sapphire                                                    |");
-	Log("|              >@tack!<                                                    |");
-	Log("| Version:     2018-09-07                                                  |");
-	Log("| ------------------------------------------------------------------------ |");
-	Log("| Released under the Creative Commons Attribution-NonCommercial-ShareAlike |");
-	Log("| license. See https://creativecommons.org/licenses/by-nc-sa/4.0/          |");
-	Log("+--------------------------------------------------------------------------+");
+	Log("+---------------------------------------------------------+");
+	Log("| TriggerMover                                            |");
+	Log("| ------------------------------------------------------- |");
+	Log("| Authors:     Sapphire; >@tack!<                         |");
+	Log("| Version:     2018-09-15                                 |");
+	Log("| Website:     https://github.com/bunnytrack/TriggerMover |");
+	Log("+---------------------------------------------------------+");
 	Log("");
 }
 
@@ -65,9 +83,24 @@ function Mutate(string MutateString, PlayerPawn Sender) {
 					}
 					break;
 
-				// Change the InitialState property of the targeted mover.
+				// Toggle mover state.
 				case "State":
 					ToggleMoverState(Sender);
+					break;
+
+				// Toggle enroach types.
+				case "Encroach":
+					ToggleMoverEncroachType(Sender);
+					break;
+
+				// Toggle mover sounds.
+				case "Mute":
+					ToggleMoverSounds(Sender);
+					break;
+
+				// Toggle bTriggerOnceOnly.
+				case "OnceOnly":
+					ToggleMoverOnceOnly(Sender);
 					break;
 
 				// Reset mover(s) back to first keyframe.
@@ -121,8 +154,8 @@ function TriggerMover(PlayerPawn Sender, optional bool bKeepOpen) {
 	M = GetCurrentMover(Sender);
 
 	if (M != none) {
-		// Keep this mover open permanently
-		if (bKeepOpen) {
+		// Keep this mover open permanently.
+		if (M.InitialState != 'TriggerControl' && bKeepOpen) {
 			M.bTriggerOnceOnly = true;
 		}
 
@@ -386,6 +419,56 @@ function ToggleMoverState(PlayerPawn Sender) {
 }
 
 /**
+ * Toggle between CrushWhenEncroach, IgnoreWhenEncroach, and ReturnWhenEncroach.
+ */
+function ToggleMoverEncroachType(PlayerPawn Sender) {
+	local Mover M;
+
+	M = GetCurrentMover(Sender);
+
+	if (M != none) {
+		switch (M.MoverEncroachType) {
+			case ME_ReturnWhenEncroach:
+				M.MoverEncroachType = ME_CrushWhenEncroach;
+				break;
+
+			case ME_CrushWhenEncroach:
+				M.MoverEncroachType = ME_IgnoreWhenEncroach;
+				break;
+
+			case ME_IgnoreWhenEncroach:
+				M.MoverEncroachType = ME_ReturnWhenEncroach;
+				break;
+
+			case ME_StopWhenEncroach:
+				Sender.ClientMessage("StopWhenEncroach mover detected; ignoring.");
+				return;
+
+			default:
+				Sender.ClientMessage("Unrecognised MoverEncroachType " $ M.MoverEncroachType);
+				return;
+		}
+
+		Sender.ClientMessage("MoverEncroachType changed to " $ EncroachTypes[M.MoverEncroachType]);
+	}
+}
+
+/**
+ * Toggle bTriggerOnceOnly property then reset mover.
+ */
+function ToggleMoverOnceOnly(PlayerPawn Sender) {
+	local Mover M;
+
+	M = GetCurrentMover(Sender);
+
+	if (M != none) {
+		M.bTriggerOnceOnly = !M.bTriggerOnceOnly;
+		M.GotoState(M.InitialState, 'Close');
+		Sender.ClientMessage("bTriggerOnceOnly set to " $ M.bTriggerOnceOnly);
+	}
+}
+
+/**
  * Output the currently targeted mover's tag to the sender.
  */
 function DisplayMoverTag(PlayerPawn Sender, optional bool bListAll) {
@@ -423,6 +506,71 @@ function DisplayMoverTag(PlayerPawn Sender, optional bool bListAll) {
 		}
 
 		Sender.ClientMessage(AllMovers);
+	}
+}
+
+/**
+ * Sets all mover sounds to None / restores original mover sounds.
+ */
+function ToggleMoverSounds(PlayerPawn Sender) {
+	local Mover M;
+	local int   i;
+
+	M = GetCurrentMover(Sender);
+
+	if (M != none) {
+		// If the mover isn't muted, mute it.
+		if (!MoverIsMuted(M)) {
+			M.OpeningSound     = none;
+			M.OpenedSound      = none;
+			M.ClosingSound     = none;
+			M.ClosedSound      = none;
+			M.MoveAmbientSound = none;
+		}
+
+		// Otherwise, find it in AllMovers and restore its sounds.
+		else {
+			for (i = 0; i < ArrayCount(AllMovers); i++) {
+				if (AllMovers[i].MoverObj == M) {
+					M.OpeningSound     = AllMovers[i].OpeningSound;
+					M.OpenedSound      = AllMovers[i].OpenedSound;
+					M.ClosingSound     = AllMovers[i].ClosingSound;
+					M.ClosedSound      = AllMovers[i].ClosedSound;
+					M.MoveAmbientSound = AllMovers[i].MoveAmbientSound;
+					break;
+
+				} else if (AllMovers[i].MoverObj == none) {
+					break;
+				}
+			}
+		}
+	}
+}
+
+/**
+ * Checks whether a mover has any sounds.
+ */
+function bool MoverIsMuted(Mover M) {
+	return M.OpeningSound == none && M.OpenedSound == none && M.ClosingSound == none && M.ClosedSound == none && M.MoveAmbientSound == none;
+}
+
+/**
+ * Add each mover in the level to AllMovers so their properties can be called on later.
+ * Executed once during PostBeginPlay.
+ */
+function PopulateMoverInfo() {
+	local int   i;
+	local Mover M;
+
+	// Sounds can't be called from MoverObj - need to set these properties also
+	foreach AllActors(Class'Mover', M) {
+		AllMovers[i].MoverObj         = M;
+		AllMovers[i].OpeningSound     = M.OpeningSound;
+		AllMovers[i].OpenedSound      = M.OpenedSound;
+		AllMovers[i].ClosingSound     = M.ClosingSound;
+		AllMovers[i].ClosedSound      = M.ClosedSound;
+		AllMovers[i].MoveAmbientSound = M.MoveAmbientSound;
+		i++;
 	}
 }
 
