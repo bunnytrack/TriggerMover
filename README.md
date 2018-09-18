@@ -22,6 +22,9 @@ All commands are case insensitive.
 | `mutate TriggerMover Reset`                | Quickly resets the targeted mover to its first keyframe.
 | `mutate TriggerMover Reset [Name]`         | Same as above, for all movers with a `Tag` property of `[Name]`.
 | `mutate TriggerMover State`                | Toggles the targeted mover's `InitialState` property between `BumpOpenTimed` or `StandOpenTimed`, if its `InitialState` property is `BumpOpenTimed` or `StandOpenTimed`.
+| `mutate TriggerMover Mute`                 | Sets all the targeted mover's sounds to `None` (or restores original sounds if already muted).
+| `mutate TriggerMover OnceOnly`             | Toggles the targeted mover's `bTriggerOnceOnly` property.
+| `mutate TriggerMover Encroach`             | Toggles between `CrushWhenEncroach`, `IgnoreWhenEncroach`, and `ReturnWhenEncroach` encroach types.
 
 ## Notes
 Movers with an `InitialState` property of `TriggerControl` (a.k.a. dead man's switches) are ignored (and the player is notified when attempting to trigger one). Because these movers rely on player proximity, triggering them manually keeps them open permanently and can potentially ruin a game. An example of a `TriggerControl` mover is shown below in `KnighTmare][`:
@@ -41,7 +44,7 @@ Many maps have movers with slow return times or mover-related obstacles at the b
 ![Spawn room of CTF-BT-SnowyPark](https://i.imgur.com/eeM5dYP.jpg)
 
 ## Version
-2018-09-07
+2018-09-15
 
 ## Website
 https://bunnytrack.net/
